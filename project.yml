@@ -1,0 +1,70 @@
+name: Sweetie
+options:
+  bundleIdPrefix: com.sweetie
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    INFOPLIST_FILE: Sweetie/Info.plist
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift.git
+    from: "2.0.0"
+
+schemes:
+  Sweetie:
+    build:
+      targets:
+        Sweetie: all
+    run:
+      config: Debug
+
+targets:
+  Sweetie:
+    type: application
+    platform: iOS
+    sources:
+      - Sweetie
+      - Shared
+    resources:
+      - path: Sweetie/Assets.xcassets
+      - path: Sweetie/Fonts
+        buildPhase: resources
+      - path: Sweetie/Sounds
+        buildPhase: resources
+      - path: Sweetie/PrivacyInfo.xcprivacy
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - target: SweetieWidgets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sweetie.together
+        INFOPLIST_FILE: Sweetie/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_STRICT_CONCURRENCY: complete
+        CODE_SIGN_ENTITLEMENTS: Sweetie/Sweetie.entitlements
+
+  SweetieWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - SweetieWidgets
+      - Shared
+    resources:
+      - path: SweetieWidgets/Assets.xcassets
+      - path: Sweetie/Fonts
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sweetie.together.widgets
+        INFOPLIST_FILE: SweetieWidgets/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_STRICT_CONCURRENCY: complete
+        CODE_SIGN_ENTITLEMENTS: SweetieWidgets/SweetieWidgets.entitlements
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"

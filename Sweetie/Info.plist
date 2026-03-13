@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Sweetie</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>UIUserInterfaceStyle</key>
+    <string>Light</string>
+    <key>UIAppFonts</key>
+    <array>
+        <string>PlayfairDisplay-Regular.ttf</string>
+        <string>PlayfairDisplay-Bold.ttf</string>
+        <string>PlayfairDisplay-Medium.ttf</string>
+        <string>PlayfairDisplay-Italic.ttf</string>
+    </array>
+    <key>NSCameraUsageDescription</key>
+    <string>Sweetie needs camera access to capture moments for your partner.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Sweetie needs photo library access to share moments with your partner.</string>
+    <key>UILaunchScreen</key>
+    <dict/>
+</dict>
+</plist>
