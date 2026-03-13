@@ -17,6 +17,7 @@ struct SharedPhotoData: Codable, Sendable {
 enum ActivityKind: String, Codable, Sendable {
     case tap
     case photo
+    case note
 }
 
 struct SharedActivityItem: Codable, Sendable {

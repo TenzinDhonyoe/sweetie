@@ -682,6 +682,13 @@ final class SupabaseService {
 
         let presenceChanges = channel.presenceChange()
 
+        let questionChanges = channel.postgresChange(
+            UpdateAction.self,
+            schema: "public",
+            table: "daily_questions",
+            filter: "couple_id=eq.\(coupleId)"
+        )
+
         Task {
             await channel.subscribe()
             let userId = await resolveUserId()
@@ -750,7 +757,7 @@ final class SupabaseService {
                        case .string(let senderId) = senderValue,
                        senderId != userId {
                         SharedDataManager.shared.appendActivity(SharedActivityItem(
-                            kind: .tap, emoji: "💌", senderName: partnerName, caption: nil, timestamp: Date()
+                            kind: .note, emoji: "💌", senderName: partnerName, caption: nil, timestamp: Date()
                         ))
                         SharedDataManager.shared.reloadWidgets()
                     }
@@ -768,6 +775,11 @@ final class SupabaseService {
                     } else if !leaves.isEmpty {
                         self.isPartnerOnline = false
                     }
+                }
+            }
+            Task {
+                for await _ in questionChanges {
+                    onNewActivity()
                 }
             }
         }
