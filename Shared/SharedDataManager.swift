@@ -20,6 +20,13 @@ enum ActivityKind: String, Codable, Sendable {
     case note
 }
 
+struct SharedQuestionData: Codable, Sendable {
+    let questionText: String
+    let myAnswer: String?
+    let partnerAnswer: String?
+    let isUnlocked: Bool
+}
+
 struct SharedActivityItem: Codable, Sendable {
     let kind: ActivityKind
     let emoji: String?
@@ -51,6 +58,16 @@ final class SharedDataManager: Sendable {
         static let latestPhoto = "widget_latestPhoto"
         static let partnerName = "widget_partnerName"
         static let recentActivity = "widget_recentActivity"
+        // Auth (for interactive widget → Supabase)
+        static let authToken = "widget_authToken"
+        static let userId = "widget_userId"
+        static let coupleId = "widget_coupleId"
+        static let supabaseURL = "widget_supabaseURL"
+        static let anonKey = "widget_anonKey"
+        // Today's Question
+        static let todayQuestion = "widget_todayQuestion"
+        // Partner timezone
+        static let partnerTimezone = "widget_partnerTimezone"
     }
 
     // MARK: - Write (main app)
@@ -99,6 +116,39 @@ final class SharedDataManager: Sendable {
         }
     }
 
+    // MARK: - Auth (for interactive widget)
+
+    func saveAuthToken(_ token: String) {
+        sharedDefaults?.set(token, forKey: Key.authToken)
+    }
+
+    func saveUserId(_ id: String) {
+        sharedDefaults?.set(id, forKey: Key.userId)
+    }
+
+    func saveCoupleId(_ id: String) {
+        sharedDefaults?.set(id, forKey: Key.coupleId)
+    }
+
+    func saveSupabaseCredentials(url: String, anonKey: String) {
+        sharedDefaults?.set(url, forKey: Key.supabaseURL)
+        sharedDefaults?.set(anonKey, forKey: Key.anonKey)
+    }
+
+    // MARK: - Today's Question
+
+    func saveTodayQuestion(_ question: SharedQuestionData) {
+        if let encoded = try? JSONEncoder().encode(question) {
+            sharedDefaults?.set(encoded, forKey: Key.todayQuestion)
+        }
+    }
+
+    // MARK: - Partner Timezone
+
+    func savePartnerTimezone(_ timezone: String) {
+        sharedDefaults?.set(timezone, forKey: Key.partnerTimezone)
+    }
+
     // MARK: - Read (widget)
 
     func loadReunionDate() -> Date? {
@@ -134,10 +184,58 @@ final class SharedDataManager: Sendable {
         return UIImage(data: data)
     }
 
+    func loadAuthToken() -> String? {
+        sharedDefaults?.string(forKey: Key.authToken)
+    }
+
+    func loadUserId() -> String? {
+        sharedDefaults?.string(forKey: Key.userId)
+    }
+
+    func loadCoupleId() -> String? {
+        sharedDefaults?.string(forKey: Key.coupleId)
+    }
+
+    func loadSupabaseURL() -> String? {
+        sharedDefaults?.string(forKey: Key.supabaseURL)
+    }
+
+    func loadAnonKey() -> String? {
+        sharedDefaults?.string(forKey: Key.anonKey)
+    }
+
+    func loadTodayQuestion() -> SharedQuestionData? {
+        guard let data = sharedDefaults?.data(forKey: Key.todayQuestion) else { return nil }
+        return try? JSONDecoder().decode(SharedQuestionData.self, from: data)
+    }
+
+    func loadPartnerTimezone() -> String? {
+        sharedDefaults?.string(forKey: Key.partnerTimezone)
+    }
+
     // MARK: - Reload
 
     func reloadWidgets() {
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    // MARK: - Clear All (sign-out)
+
+    func clearAll() {
+        let keys = [
+            Key.reunionDate, Key.lastTap, Key.latestPhoto, Key.partnerName,
+            Key.recentActivity, Key.authToken, Key.userId, Key.coupleId,
+            Key.supabaseURL, Key.anonKey, Key.todayQuestion, Key.partnerTimezone,
+        ]
+        for key in keys {
+            sharedDefaults?.removeObject(forKey: key)
+        }
+        // Delete cached photo
+        if let containerURL = sharedContainerURL {
+            let fileURL = containerURL.appendingPathComponent("latest_photo.jpg")
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+        reloadWidgets()
     }
 
     // MARK: - Private

@@ -13,8 +13,7 @@ struct LastTapProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LastTapEntry) -> Void) {
-        let entry = loadEntry()
-        completion(entry)
+        completion(loadEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LastTapEntry>) -> Void) {
@@ -26,9 +25,11 @@ struct LastTapProvider: TimelineProvider {
 
     private func loadEntry() -> LastTapEntry {
         let manager = SharedDataManager.shared
-        let tapData = manager.loadLastTap()
-        let partnerName = manager.loadPartnerName()
-        return LastTapEntry(date: .now, tapData: tapData, partnerName: partnerName)
+        return LastTapEntry(
+            date: .now,
+            tapData: manager.loadLastTap(),
+            partnerName: manager.loadPartnerName()
+        )
     }
 }
 
@@ -45,7 +46,7 @@ struct LastTapSmallView: View {
                 Text(tap.emoji)
                     .font(.system(size: 32))
 
-                Text("\(tap.senderName) sent \u{1F495}")
+                Text("\(tap.senderName) sent 💕")
                     .font(.system(size: 13))
                     .foregroundStyle(Color.inkSoft)
                     .lineLimit(1)
@@ -76,6 +77,83 @@ struct LastTapSmallView: View {
     }
 }
 
+// MARK: - Medium Widget View
+
+struct LastTapMediumView: View {
+    let entry: LastTapEntry
+
+    var body: some View {
+        if let tap = entry.tapData {
+            HStack {
+                VStack(spacing: Spacing.sm) {
+                    Text(tap.emoji)
+                        .font(.system(size: 44))
+
+                    Text(tap.senderName)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.ink)
+                }
+                .frame(maxWidth: .infinity)
+
+                VStack(spacing: Spacing.xs) {
+                    Spacer()
+
+                    Text("sent a tap")
+                        .font(.custom("PlayfairDisplay-Italic", size: 15))
+                        .foregroundStyle(Color.inkSoft)
+
+                    Text(tap.timestamp, style: .relative)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.inkFaint)
+
+                    Spacer()
+
+                    HStack {
+                        Spacer()
+                        Image("mascot-wave")
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: 24, height: 24)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        } else {
+            HStack(spacing: Spacing.lg) {
+                Image("mascot-wave")
+                    .resizable()
+                    .interpolation(.none)
+                    .frame(width: 40, height: 40)
+                VStack(spacing: Spacing.xs) {
+                    Text("No taps yet")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.inkSoft)
+                    Text("Open Sweetie to send one")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.inkFaint)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+// MARK: - Widget Entry View
+
+struct LastTapWidgetEntryView: View {
+    @Environment(\.widgetFamily) var family
+    let entry: LastTapEntry
+
+    var body: some View {
+        switch family {
+        case .systemMedium:
+            LastTapMediumView(entry: entry)
+        default:
+            LastTapSmallView(entry: entry)
+        }
+    }
+}
+
 // MARK: - Widget Definition
 
 struct LastTapWidget: Widget {
@@ -83,7 +161,7 @@ struct LastTapWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LastTapProvider()) { entry in
-            LastTapSmallView(entry: entry)
+            LastTapWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
                     LinearGradient(
                         colors: [Color.cream, Color.rosePale],
@@ -91,9 +169,10 @@ struct LastTapWidget: Widget {
                         endPoint: .bottom
                     )
                 }
+                .widgetURL(URL(string: "sweetie://heart"))
         }
-        .configurationDisplayName("Sweetie Taps")
-        .description("Last tap from your partner")
-        .supportedFamilies([.systemSmall])
+        .configurationDisplayName("Love Taps")
+        .description("See when your partner is thinking of you")
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

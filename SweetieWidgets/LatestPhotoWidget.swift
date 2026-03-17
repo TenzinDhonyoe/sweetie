@@ -197,9 +197,10 @@ struct LatestPhotoWidget: Widget {
                         endPoint: .bottom
                     )
                 }
+                .widgetURL(URL(string: "sweetie://home"))
         }
-        .configurationDisplayName("Sweetie Photos")
-        .description("Your partner's latest photo")
+        .configurationDisplayName("Moments")
+        .description("Your partner's latest photo, always close")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

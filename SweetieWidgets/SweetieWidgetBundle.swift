@@ -7,6 +7,9 @@ struct SweetieWidgetBundle: WidgetBundle {
         CountdownWidget()
         LatestPhotoWidget()
         LastTapWidget()
+        InteractiveTapWidget()
+        TodayQuestionWidget()
         LockScreenCountdownWidget()
+        PartnerTimeWidget()
     }
 }
