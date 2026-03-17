@@ -161,14 +161,14 @@ struct HomeView: View {
     private var fabMenu: some View {
         VStack(alignment: .trailing, spacing: Spacing.sm) {
             if showFABMenu {
-                fabPill(emoji: "💌", label: "Note", delay: 0.05) {
+                fabPill(icon: "envelope.fill", label: "Note", delay: 0.05) {
                     withAnimation(.spring(duration: 0.3, bounce: 0.2)) {
                         showFABMenu = false
                     }
                     showNoteSheet = true
                 }
 
-                fabPill(emoji: "📸", label: "Photo", delay: 0) {
+                fabPill(icon: "camera.fill", label: "Photo", delay: 0) {
                     withAnimation(.spring(duration: 0.3, bounce: 0.2)) {
                         showFABMenu = false
                     }
@@ -202,19 +202,14 @@ struct HomeView: View {
         .padding(.bottom, Spacing.xl)
     }
 
-    private func fabPill(emoji: String, label: String, delay: Double, action: @escaping () -> Void) -> some View {
+    private func fabPill(icon: String, label: String, delay: Double, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: Spacing.sm) {
-                Text(emoji)
-                    .font(.system(size: 20))
-
-                Text(label)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.ink)
-            }
-            .padding(.horizontal, Spacing.lg)
-            .padding(.vertical, Spacing.md)
-            .sweetieGlass(cornerRadius: 24)
+            Label(label, systemImage: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.ink)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.md)
+                .sweetieGlass(cornerRadius: 24)
         }
         .buttonStyle(QuickActionButtonStyle())
         .transition(

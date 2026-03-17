@@ -8,20 +8,30 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content area — show the selected tab
-            Group {
-                switch selectedTab {
-                case 0: HomeView()
-                case 1: HeartView()
-                case 2: SettingsView()
-                default: HomeView()
-                }
-            }
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem {
+                        Image(systemName: "house")
+                        Text("Home")
+                    }
+                    .tag(0)
 
-            // Custom tab bar
-            customTabBar
-                .padding(.horizontal, Spacing.xl)
-                .padding(.bottom, Spacing.sm)
+                HeartView()
+                    .tabItem {
+                        Image(systemName: "heart.fill")
+                        Text("Heart")
+                    }
+                    .tag(1)
+
+                SettingsView()
+                    .tabItem {
+                        Image(systemName: "gearshape")
+                        Text("Settings")
+                    }
+                    .tag(2)
+            }
+            .tint(Color.rose)
+            .toolbarBackground(.automatic, for: .tabBar)
 
             // Incoming tap banner
             if let bannerEmoji = incomingTapBanner {
@@ -34,43 +44,6 @@ struct MainTabView: View {
         .onAppear {
             subscribeToBroadcastTaps()
         }
-    }
-
-    // MARK: - Custom Tab Bar
-
-    private var customTabBar: some View {
-        HStack(spacing: 0) {
-            tabButton(icon: "house", label: "Home", tag: 0)
-            tabButton(icon: "heart.fill", label: "Heart", tag: 1)
-            tabButton(icon: "gearshape", label: "Settings", tag: 2)
-        }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.md)
-        .sweetieGlass(cornerRadius: 28)
-    }
-
-    private func tabButton(icon: String, label: String, tag: Int) -> some View {
-        let isSelected = selectedTab == tag
-
-        return Button {
-            withAnimation(.spring(duration: 0.3, bounce: 0.2)) {
-                selectedTab = tag
-            }
-            HapticService.tap()
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
-                    .symbolEffect(.bounce, value: isSelected)
-
-                Text(label)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-            }
-            .foregroundStyle(isSelected ? Color.rose : Color.inkFaint)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.xs)
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Incoming Tap Banner

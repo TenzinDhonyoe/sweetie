@@ -165,7 +165,6 @@ struct PairingView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color.inkSoft)
                     .contentTransition(.numericText())
-                    .animation(.spring(duration: 0.3), value: dotCount)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 50)
@@ -204,7 +203,7 @@ struct PairingView: View {
 
             MascotView(pose: .excited, size: 100, animation: .bounce)
 
-            Text("You're connected! 💕")
+            Text("You're connected!")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(Color.ink)
         }

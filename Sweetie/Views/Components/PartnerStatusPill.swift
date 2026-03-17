@@ -56,22 +56,11 @@ struct PartnerStatusPill: View {
 
     private var sleepingCard: some View {
         HStack(spacing: Spacing.md) {
-            // Moon icon with soft glow
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.lavender.opacity(0.3), Color.lavender.opacity(0.05)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 24
-                        )
-                    )
-                    .frame(width: 44, height: 44)
-
-                Text("🌙")
-                    .font(.system(size: 22))
-            }
+            // Moon icon
+            Image(systemName: "moon.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(Color.lavender)
+                .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(partnerName) is dreaming")
@@ -85,20 +74,9 @@ struct PartnerStatusPill: View {
 
             Spacer()
 
-            // Floating z's
-            HStack(spacing: 3) {
-                Text("z")
-                    .font(.system(size: 11, weight: .medium, design: .serif))
-                    .foregroundStyle(Color.lavender.opacity(0.5))
-                Text("z")
-                    .font(.system(size: 14, weight: .medium, design: .serif))
-                    .foregroundStyle(Color.lavender.opacity(0.7))
-                    .offset(y: -3)
-                Text("Z")
-                    .font(.system(size: 17, weight: .medium, design: .serif))
-                    .foregroundStyle(Color.lavender.opacity(0.9))
-                    .offset(y: -7)
-            }
+            Image(systemName: "moon.zzz.fill")
+                .font(.system(size: 18))
+                .foregroundStyle(Color.lavender.opacity(0.6))
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.md)

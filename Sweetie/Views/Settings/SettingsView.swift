@@ -590,7 +590,7 @@ struct SettingsView: View {
                 Divider()
                     .padding(.leading, Spacing.lg)
 
-                settingsRow(label: "Made with", value: "❤️")
+                settingsRow(label: "Made with", value: "love")
 
                 Divider()
                     .padding(.leading, Spacing.lg)

@@ -4,6 +4,7 @@ extension Color {
     // Backgrounds (beneath glass)
     static let cream = Color(red: 0.992, green: 0.965, blue: 0.941)
     static let blush = Color(red: 0.961, green: 0.902, blue: 0.863)
+    static let warmCream = Color(red: 0.973, green: 0.929, blue: 0.890)
     static let rosePale = Color(red: 0.980, green: 0.867, blue: 0.882)
 
     // Text

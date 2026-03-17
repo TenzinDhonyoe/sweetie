@@ -14,7 +14,7 @@ struct BackgroundGradient: View {
         switch style {
         case .default:
             LinearGradient(
-                colors: [.cream, .blush, .rosePale],
+                colors: [.cream, .blush],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ).ignoresSafeArea()
@@ -32,7 +32,7 @@ struct BackgroundGradient: View {
             ).ignoresSafeArea()
         case .notes:
             LinearGradient(
-                colors: [.cream, Color(red: 0.973, green: 0.929, blue: 0.890)],
+                colors: [.cream, .warmCream],
                 startPoint: .top,
                 endPoint: .bottom
             ).ignoresSafeArea()
