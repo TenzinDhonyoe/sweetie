@@ -6,6 +6,7 @@ struct SweetieApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var supabase = SupabaseService()
     @AppStorage("hasOnboarded") private var hasOnboarded: Bool = false
+    @State private var selectedTab = 0
 
     var body: some Scene {
         WindowGroup {
@@ -29,13 +30,13 @@ struct SweetieApp: App {
                         }
                     case .unpaired:
                         if supabase.isWaitingForPartner {
-                            MainTabView()
+                            MainTabView(selectedTab: $selectedTab)
                         } else {
                             PairingView()
                         }
                     case .paired:
                         if supabase.hasCompletedOnboarding {
-                            MainTabView()
+                            MainTabView(selectedTab: $selectedTab)
                         } else {
                             OnboardingView()
                         }
@@ -50,8 +51,26 @@ struct SweetieApp: App {
             .onChange(of: supabase.authState) {
                 if supabase.authState == .paired {
                     supabase.syncWidgetData()
+                    Task {
+                        await supabase.syncWidgetDataFull()
+                    }
                 }
             }
+            .onOpenURL { url in
+                handleDeepLink(url)
+            }
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "sweetie" else { return }
+        switch url.host {
+        case "heart":
+            selectedTab = 1
+        case "settings":
+            selectedTab = 2
+        default:
+            selectedTab = 0
         }
     }
 
