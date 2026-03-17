@@ -50,7 +50,7 @@ struct HomeView: View {
 
                 // Dim overlay
                 if showFABMenu {
-                    Color.black.opacity(0.35)
+                    Color.ink.opacity(0.35)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.spring(duration: 0.3, bounce: 0.2)) {
@@ -120,9 +120,9 @@ struct HomeView: View {
             Text(photoUploadError ?? "")
         }
         .sheet(isPresented: $showNoteSheet) {
-            ComposeNoteSheet(category: .instant) { content, _, _ in
+            ComposeNoteSheet { content in
                 Task {
-                    try? await supabase.sendNote(content: content, category: .instant)
+                    try? await supabase.sendNote(content: content)
                     await refreshActivity()
                 }
             }
@@ -216,9 +216,7 @@ struct HomeView: View {
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.md)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+            .sweetieGlass(cornerRadius: 24)
         }
         .buttonStyle(QuickActionButtonStyle())
         .transition(
@@ -274,7 +272,7 @@ struct HomeView: View {
     private var recentActivitySection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             if isLoading {
-                ProgressView()
+                MascotView(pose: .default, size: 48, animation: .bounce)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.xl)
             } else if recentActivity.isEmpty {

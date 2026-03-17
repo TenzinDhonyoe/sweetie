@@ -86,7 +86,7 @@ struct WelcomeView: View {
                 .font(.system(size: 15))
                 .foregroundStyle(Color.inkSoft)
             } else {
-                Button("Let's begin ❤️") {
+                Button("Let's begin") {
                     hasOnboarded = true
                 }
                 .buttonStyle(PrimaryButtonStyle())

@@ -34,7 +34,7 @@ struct MascotView: View {
             .modifier(MascotAnimationModifier(style: animation, animating: animating))
             .onAppear {
                 guard animation != .none else { return }
-                withAnimation(.easeInOut(duration: animationDuration).repeatForever(autoreverses: true)) {
+                withAnimation(.spring(duration: animationDuration, bounce: 0.1).repeatForever(autoreverses: true)) {
                     animating = true
                 }
             }
