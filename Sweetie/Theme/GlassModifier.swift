@@ -14,6 +14,7 @@ struct SweetieGlass: ViewModifier {
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(Color.white.opacity(0.30), lineWidth: 0.5)
+                        .allowsHitTesting(false)
                 )
         } else {
             content
@@ -25,6 +26,7 @@ struct SweetieGlass: ViewModifier {
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(Color.white.opacity(0.30), lineWidth: 0.5)
+                        .allowsHitTesting(false)
                 )
         }
     }

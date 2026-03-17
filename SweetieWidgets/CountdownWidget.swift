@@ -36,7 +36,6 @@ struct CountdownProvider: TimelineProvider {
         var entries: [CountdownEntry] = []
         let now = Date()
 
-        // Generate an entry every minute for the next hour
         for minuteOffset in 0..<60 {
             let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now) ?? .now
             entries.append(CountdownEntry(
@@ -65,31 +64,42 @@ struct CountdownSmallView: View {
                 to: reunionDate
             )
             let days = max(0, components.day ?? 0)
+            let hours = max(0, components.hour ?? 0)
 
-            VStack(spacing: Spacing.xs) {
+            VStack(spacing: 0) {
                 Spacer()
 
+                // Heart icon accent
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.rose.opacity(0.6))
+                    .padding(.bottom, 6)
+
+                // Big number
                 Text("\(days)")
-                    .font(.custom("PlayfairDisplay-Bold", size: 34))
-                    .foregroundStyle(Color.gold)
+                    .font(.custom("PlayfairDisplay-Bold", size: 48))
+                    .foregroundStyle(Color.ink)
+                    .contentTransition(.numericText())
 
                 Text("days")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.inkFaint)
-
-                Text("until I hold you again")
-                    .font(.custom("PlayfairDisplay-Italic", size: 11))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(Color.inkSoft)
+                    .textCase(.uppercase)
+                    .kerning(1.5)
+                    .padding(.top, -4)
 
                 Spacer()
 
-                HStack {
-                    Spacer()
-                    Image("mascot-hug")
-                        .resizable()
-                        .interpolation(.none)
-                        .frame(width: 24, height: 24)
+                // Subtle bottom detail
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(Color.rose.opacity(0.4))
+                        .frame(width: 4, height: 4)
+                    Text("\(hours)h left today")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(Color.inkFaint)
                 }
+                .padding(.bottom, 2)
             }
             .frame(maxWidth: .infinity)
         } else {
@@ -99,14 +109,19 @@ struct CountdownSmallView: View {
 
     private var noDateView: some View {
         VStack(spacing: Spacing.sm) {
-            Image("mascot-hug")
-                .resizable()
-                .interpolation(.none)
-                .frame(width: 32, height: 32)
-            Text("Set a reunion date")
-                .font(.system(size: 11))
+            Image(systemName: "heart.circle")
+                .font(.system(size: 28, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.5))
+
+            Text("Set a date")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.inkSoft)
+
+            Text("for your reunion")
+                .font(.system(size: 10))
+                .foregroundStyle(Color.inkFaint)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -126,20 +141,39 @@ struct CountdownMediumView: View {
             let hours = max(0, components.hour ?? 0)
             let minutes = max(0, components.minute ?? 0)
 
-            HStack {
-                // Left side: countdown numbers
-                VStack(spacing: Spacing.xs) {
-                    Text("\(days)")
-                        .font(.custom("PlayfairDisplay-Bold", size: 44))
-                        .foregroundStyle(Color.gold)
+            HStack(spacing: 0) {
+                // Left: countdown
+                VStack(spacing: 2) {
+                    Spacer()
 
-                    Text("days \u{2022} \(hours)h \(minutes)m")
-                        .font(.system(size: 13))
+                    Text("\(days)")
+                        .font(.custom("PlayfairDisplay-Bold", size: 56))
+                        .foregroundStyle(Color.ink)
+                        .contentTransition(.numericText())
+
+                    Text("DAYS")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color.inkSoft)
+                        .kerning(2)
+
+                    Spacer()
+
+                    // Time chips
+                    HStack(spacing: 6) {
+                        timeChip(value: hours, unit: "h")
+                        timeChip(value: minutes, unit: "m")
+                    }
+                    .padding(.bottom, 4)
                 }
                 .frame(maxWidth: .infinity)
 
-                // Right side: photo > tap > romantic text
+                // Divider
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color.roseLight.opacity(0.4))
+                    .frame(width: 1)
+                    .padding(.vertical, Spacing.lg)
+
+                // Right: content
                 VStack(spacing: Spacing.sm) {
                     Spacer()
 
@@ -147,8 +181,12 @@ struct CountdownMediumView: View {
                         Image(uiImage: photo)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .frame(width: 60, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.roseLight.opacity(0.5), lineWidth: 0.5)
+                            )
 
                         if let photoMeta = SharedDataManager.shared.loadLatestPhoto() {
                             Text(photoMeta.senderName)
@@ -156,30 +194,29 @@ struct CountdownMediumView: View {
                                 .foregroundStyle(Color.ink)
 
                             Text(photoMeta.timestamp, style: .relative)
-                                .font(.system(size: 10))
+                                .font(.system(size: 9))
                                 .foregroundStyle(Color.inkFaint)
                         }
                     } else if let latestTap = entry.recentActivity.first(where: { $0.kind == .tap }) {
                         Text(latestTap.emoji ?? "💕")
-                            .font(.system(size: 36))
+                            .font(.system(size: 32))
 
                         Text(latestTap.senderName)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(Color.ink)
 
                         Text(latestTap.timestamp, style: .relative)
-                            .font(.system(size: 10))
+                            .font(.system(size: 9))
                             .foregroundStyle(Color.inkFaint)
                     } else {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.rose.opacity(0.4))
+
                         Text("until I hold\nyou again")
-                            .font(.custom("PlayfairDisplay-Italic", size: 15))
+                            .font(.custom("PlayfairDisplay-Italic", size: 14))
                             .foregroundStyle(Color.inkSoft)
                             .multilineTextAlignment(.center)
-
-                        Image("mascot-hug")
-                            .resizable()
-                            .interpolation(.none)
-                            .frame(width: 32, height: 32)
                     }
 
                     Spacer()
@@ -187,16 +224,43 @@ struct CountdownMediumView: View {
                 .frame(maxWidth: .infinity)
             }
         } else {
-            HStack {
-                Image("mascot-hug")
-                    .resizable()
-                    .interpolation(.none)
-                    .frame(width: 32, height: 32)
-                Text("Set a reunion date in Sweetie")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.inkSoft)
+            mediumEmptyState
+        }
+    }
+
+    private func timeChip(value: Int, unit: String) -> some View {
+        HStack(spacing: 2) {
+            Text("\(value)")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.ink)
+            Text(unit)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(Color.inkFaint)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(Color.ink.opacity(0.04))
+        )
+    }
+
+    private var mediumEmptyState: some View {
+        HStack(spacing: Spacing.lg) {
+            Image(systemName: "heart.circle")
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.5))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set a reunion date")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.ink)
+                Text("Open Sweetie to start counting down")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.inkFaint)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -207,17 +271,7 @@ struct CountdownLargeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top section: countdown
             countdownSection
-                .padding(.bottom, Spacing.md)
-
-            // Divider
-            Rectangle()
-                .fill(Color.roseLight.opacity(0.5))
-                .frame(height: 1)
-                .padding(.horizontal, Spacing.sm)
-
-            // Bottom section: recent activity
             activitySection
         }
     }
@@ -234,56 +288,70 @@ struct CountdownLargeView: View {
             let hours = max(0, components.hour ?? 0)
             let minutes = max(0, components.minute ?? 0)
 
-            HStack {
-                VStack(spacing: Spacing.xs) {
-                    Text("\(days)")
-                        .font(.custom("PlayfairDisplay-Bold", size: 52))
-                        .foregroundStyle(Color.gold)
+            VStack(spacing: 4) {
+                Text("\(days)")
+                    .font(.custom("PlayfairDisplay-Bold", size: 64))
+                    .foregroundStyle(Color.ink)
+                    .contentTransition(.numericText())
 
-                    Text("days \u{2022} \(hours)h \(minutes)m")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.inkSoft)
+                Text("DAYS")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.inkSoft)
+                    .kerning(3)
+
+                HStack(spacing: 12) {
+                    timeUnit(value: hours, label: "hours")
+                    Text(":")
+                        .font(.system(size: 14, weight: .light))
+                        .foregroundStyle(Color.inkFaint)
+                    timeUnit(value: minutes, label: "min")
                 }
-                .frame(maxWidth: .infinity)
-
-                VStack(spacing: Spacing.sm) {
-                    Text("until I hold you again")
-                        .font(.custom("PlayfairDisplay-Italic", size: 15))
-                        .foregroundStyle(Color.inkSoft)
-                        .multilineTextAlignment(.center)
-
-                    Image("mascot-hug")
-                        .resizable()
-                        .interpolation(.none)
-                        .frame(width: 36, height: 36)
-                }
-                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
             }
-            .padding(.top, Spacing.sm)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, Spacing.lg)
         } else {
-            HStack {
-                Image("mascot-hug")
-                    .resizable()
-                    .interpolation(.none)
-                    .frame(width: 36, height: 36)
-                Text("Set a reunion date in Sweetie")
-                    .font(.system(size: 14))
+            VStack(spacing: Spacing.sm) {
+                Image(systemName: "heart.circle")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(Color.rose.opacity(0.5))
+                Text("Set a reunion date")
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color.inkSoft)
             }
-            .padding(.top, Spacing.lg)
+            .padding(.vertical, Spacing.xl)
+        }
+    }
+
+    private func timeUnit(value: Int, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text("\(value)")
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.ink)
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(Color.inkFaint)
+                .textCase(.uppercase)
+                .kerning(0.5)
         }
     }
 
     private var activitySection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack {
-                Text("Recent")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.inkFaint)
-                    .textCase(.uppercase)
-                Spacer()
-            }
-            .padding(.top, Spacing.md)
+        VStack(alignment: .leading, spacing: 0) {
+            // Divider line
+            Rectangle()
+                .fill(Color.ink.opacity(0.06))
+                .frame(height: 1)
+                .padding(.horizontal, Spacing.sm)
+
+            // Header
+            Text("RECENT")
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.inkFaint)
+                .kerning(1.5)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.sm)
 
             if entry.recentActivity.isEmpty && entry.latestPhoto == nil {
                 emptyActivity
@@ -297,28 +365,26 @@ struct CountdownLargeView: View {
 
     private var emptyActivity: some View {
         HStack(spacing: Spacing.md) {
-            Image("mascot-wave")
-                .resizable()
-                .interpolation(.none)
-                .frame(width: 28, height: 28)
+            Image(systemName: "hand.tap")
+                .font(.system(size: 18, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.5))
 
             Text("Send a tap or photo to see it here")
-                .font(.system(size: 13))
+                .font(.system(size: 12))
                 .foregroundStyle(Color.inkSoft)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var activityList: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            // Show latest photo thumbnail if available
+        VStack(alignment: .leading, spacing: 2) {
             if let photo = entry.latestPhoto {
                 HStack(spacing: Spacing.sm) {
                     Image(uiImage: photo)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: 36, height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .frame(width: 40, height: 40)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("New moment")
@@ -335,15 +401,13 @@ struct CountdownLargeView: View {
                     Spacer()
 
                     Image(systemName: "camera.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.rose)
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.rose.opacity(0.6))
                 }
-                .padding(Spacing.sm)
-                .background(Color.cream.opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
             }
 
-            // Show recent taps
             ForEach(Array(entry.recentActivity.prefix(entry.latestPhoto != nil ? 3 : 4).enumerated()), id: \.offset) { _, item in
                 activityRow(item)
             }
@@ -352,18 +416,21 @@ struct CountdownLargeView: View {
 
     private func activityRow(_ item: SharedActivityItem) -> some View {
         HStack(spacing: Spacing.sm) {
-            switch item.kind {
-            case .tap:
-                Text(item.emoji ?? "💕")
-                    .font(.system(size: 18))
-                    .frame(width: 28, height: 28)
-
-            case .photo:
-                Image(systemName: "photo.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.rose)
-                    .frame(width: 28, height: 28)
+            Group {
+                switch item.kind {
+                case .tap:
+                    Text(item.emoji ?? "💕")
+                        .font(.system(size: 16))
+                case .photo:
+                    Image(systemName: "photo.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.rose.opacity(0.6))
+                case .note:
+                    Text(item.emoji ?? "💌")
+                        .font(.system(size: 16))
+                }
             }
+            .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(activityLabel(item))
@@ -372,14 +439,14 @@ struct CountdownLargeView: View {
                     .lineLimit(1)
 
                 Text(item.timestamp, style: .relative)
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
                     .foregroundStyle(Color.inkFaint)
             }
 
             Spacer()
         }
-        .padding(.vertical, Spacing.xs)
-        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, 6)
+        .padding(.horizontal, Spacing.lg)
     }
 
     private func activityLabel(_ item: SharedActivityItem) -> String {
@@ -391,6 +458,8 @@ struct CountdownLargeView: View {
                 return "\(item.senderName): \(caption)"
             }
             return "\(item.senderName) sent a photo"
+        case .note:
+            return "\(item.senderName) sent a love note"
         }
     }
 }
@@ -422,11 +491,7 @@ struct CountdownWidget: Widget {
         StaticConfiguration(kind: kind, provider: CountdownProvider()) { entry in
             CountdownWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
-                    LinearGradient(
-                        colors: [Color.cream, Color.blush],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                    Color.cream
                 }
         }
         .configurationDisplayName("Sweetie Countdown")

@@ -27,7 +27,6 @@ struct LatestPhotoProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LatestPhotoEntry>) -> Void) {
         let entry = loadEntry()
-        // Refresh in 1 hour; app-triggered reloads handle real-time updates
         let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: .now) ?? .now
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)
@@ -56,27 +55,37 @@ struct LatestPhotoSmallView: View {
     var body: some View {
         if let image = entry.image {
             ZStack(alignment: .bottom) {
+                // Full bleed photo
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
 
-                // Glass-style overlay bar
+                // Bottom gradient overlay for readability
+                LinearGradient(
+                    colors: [.clear, Color.ink.opacity(0.5)],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+                .frame(height: 60)
+
+                // Info bar
                 HStack(spacing: Spacing.xs) {
-                    Text(entry.senderName ?? "")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.ink)
+                    if let name = entry.senderName {
+                        Text(name)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
 
                     Spacer()
 
                     if let timestamp = entry.photoTimestamp {
                         Text(timestamp, style: .relative)
-                            .font(.system(size: 9))
-                            .foregroundStyle(Color.inkFaint)
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.7))
                     }
                 }
                 .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.xs)
-                .background(.ultraThinMaterial)
+                .padding(.bottom, Spacing.sm)
             }
         } else {
             emptyState
@@ -85,13 +94,18 @@ struct LatestPhotoSmallView: View {
 
     private var emptyState: some View {
         VStack(spacing: Spacing.sm) {
-            Image("mascot-peek")
-                .resizable()
-                .interpolation(.none)
-                .frame(width: 40, height: 40)
-            Text("No moments yet")
-                .font(.system(size: 11))
-                .foregroundStyle(Color.inkSoft)
+            Image(systemName: "camera")
+                .font(.system(size: 24, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.4))
+
+            VStack(spacing: 3) {
+                Text("No moments yet")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.inkSoft)
+                Text("Share a photo")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.inkFaint)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -106,16 +120,21 @@ struct LatestPhotoMediumView: View {
         if let image = entry.image {
             GeometryReader { geo in
                 HStack(spacing: 0) {
-                    // Left 60%: photo
+                    // Left: photo fills
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: geo.size.width * 0.6, height: geo.size.height)
+                        .frame(width: geo.size.width * 0.55, height: geo.size.height)
                         .clipped()
 
-                    // Right 40%: details
-                    VStack(spacing: Spacing.sm) {
+                    // Right: details
+                    VStack(spacing: 0) {
                         Spacer()
+
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.rose.opacity(0.5))
+                            .padding(.bottom, 8)
 
                         if let caption = entry.caption, !caption.isEmpty {
                             Text(caption)
@@ -123,23 +142,27 @@ struct LatestPhotoMediumView: View {
                                 .foregroundStyle(Color.ink)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(3)
+                                .padding(.horizontal, Spacing.sm)
                         }
 
-                        if let timestamp = entry.photoTimestamp {
-                            Text(timestamp, style: .relative)
-                                .font(.system(size: 11))
-                                .foregroundStyle(Color.inkFaint)
-                        }
+                        VStack(spacing: 3) {
+                            if let name = entry.senderName {
+                                Text(name)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(Color.ink)
+                            }
 
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.rose)
+                            if let timestamp = entry.photoTimestamp {
+                                Text(timestamp, style: .relative)
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Color.inkFaint)
+                            }
+                        }
+                        .padding(.top, 8)
 
                         Spacer()
                     }
-                    .padding(.horizontal, Spacing.sm)
-                    .frame(width: geo.size.width * 0.4, height: geo.size.height)
-                    .background(Color.cream)
+                    .frame(width: geo.size.width * 0.45, height: geo.size.height)
                 }
             }
         } else {
@@ -149,15 +172,15 @@ struct LatestPhotoMediumView: View {
 
     private var emptyState: some View {
         HStack(spacing: Spacing.lg) {
-            Image("mascot-peek")
-                .resizable()
-                .interpolation(.none)
-                .frame(width: 40, height: 40)
-            VStack(spacing: Spacing.xs) {
-                Text("Send your first photo")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.inkSoft)
-                Text("Open Sweetie to get started")
+            Image(systemName: "camera")
+                .font(.system(size: 28, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.4))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Share a moment")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.ink)
+                Text("Open Sweetie to send a photo")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.inkFaint)
             }
@@ -191,11 +214,7 @@ struct LatestPhotoWidget: Widget {
         StaticConfiguration(kind: kind, provider: LatestPhotoProvider()) { entry in
             LatestPhotoWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
-                    LinearGradient(
-                        colors: [Color.cream, Color.blush],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                    Color.cream
                 }
         }
         .configurationDisplayName("Sweetie Photos")

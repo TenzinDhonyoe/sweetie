@@ -42,7 +42,7 @@ struct LockScreenInlineView: View {
     var body: some View {
         if let reunionDate = entry.reunionDate {
             let days = max(0, Calendar.current.dateComponents([.day], from: entry.date, to: reunionDate).day ?? 0)
-            Text("\(Image(systemName: "heart.fill")) \(days)d until together")
+            Text("\(Image(systemName: "heart.fill")) \(days) days until together")
         } else {
             Text("\(Image(systemName: "heart.fill")) Sweetie")
         }
@@ -56,29 +56,37 @@ struct LockScreenCircularView: View {
 
     var body: some View {
         if let reunionDate = entry.reunionDate {
-            let days = max(0, Calendar.current.dateComponents([.day], from: entry.date, to: reunionDate).day ?? 0)
+            let totalDays = max(0, Calendar.current.dateComponents([.day], from: entry.date, to: reunionDate).day ?? 0)
 
             ZStack {
                 AccessoryWidgetBackground()
 
-                VStack(spacing: 1) {
+                VStack(spacing: 0) {
                     Image(systemName: "heart.fill")
-                        .font(.system(size: 10))
+                        .font(.system(size: 8))
+                        .padding(.bottom, 1)
 
-                    Text("\(days)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    Text("\(totalDays)")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
 
                     Text("days")
-                        .font(.system(size: 8))
+                        .font(.system(size: 7, weight: .medium))
                         .textCase(.uppercase)
+                        .kerning(0.5)
                 }
             }
         } else {
             ZStack {
                 AccessoryWidgetBackground()
 
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 20))
+                VStack(spacing: 2) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 18))
+                    Text("Sweetie")
+                        .font(.system(size: 7, weight: .medium))
+                        .textCase(.uppercase)
+                        .kerning(0.5)
+                }
             }
         }
     }
@@ -100,44 +108,42 @@ struct LockScreenRectangularView: View {
             let hours = max(0, components.hour ?? 0)
             let minutes = max(0, components.minute ?? 0)
 
-            HStack(spacing: 8) {
-                VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                // Days number
+                VStack(spacing: 1) {
                     Text("\(days)")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
                     Text("days")
-                        .font(.system(size: 9))
+                        .font(.system(size: 8, weight: .medium))
                         .textCase(.uppercase)
+                        .kerning(0.5)
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
+                // Separator dot
+                Circle()
+                    .frame(width: 3, height: 3)
+                    .opacity(0.4)
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text("until together")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
 
-                    Text("\(hours)h \(minutes)m remaining")
-                        .font(.system(size: 10))
-                        .opacity(0.7)
-
-                    HStack(spacing: 2) {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 8))
-                        Text("Sweetie")
-                            .font(.system(size: 9))
-                    }
-                    .opacity(0.5)
+                    Text("\(hours)h \(minutes)m")
+                        .font(.system(size: 11, weight: .regular, design: .rounded))
+                        .opacity(0.6)
                 }
             }
         } else {
-            HStack(spacing: 8) {
+            HStack(spacing: 10) {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 18))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Sweetie")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                     Text("Set a reunion date")
                         .font(.system(size: 10))
-                        .opacity(0.7)
+                        .opacity(0.6)
                 }
             }
         }

@@ -39,20 +39,27 @@ struct LastTapSmallView: View {
 
     var body: some View {
         if let tap = entry.tapData {
-            VStack(spacing: Spacing.sm) {
+            VStack(spacing: 6) {
                 Spacer()
 
+                // Emoji with subtle ring
                 Text(tap.emoji)
-                    .font(.system(size: 32))
+                    .font(.system(size: 38))
+                    .padding(8)
+                    .background(
+                        Circle()
+                            .fill(Color.rose.opacity(0.08))
+                    )
 
-                Text("\(tap.senderName) sent \u{1F495}")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.inkSoft)
-                    .lineLimit(1)
+                VStack(spacing: 3) {
+                    Text(tap.senderName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.ink)
 
-                Text(tap.timestamp, style: .relative)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.inkFaint)
+                    Text(tap.timestamp, style: .relative)
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.inkFaint)
+                }
 
                 Spacer()
             }
@@ -64,13 +71,18 @@ struct LastTapSmallView: View {
 
     private var emptyState: some View {
         VStack(spacing: Spacing.sm) {
-            Image("mascot-wave")
-                .resizable()
-                .interpolation(.none)
-                .frame(width: 32, height: 32)
-            Text("No taps yet")
-                .font(.system(size: 11))
-                .foregroundStyle(Color.inkSoft)
+            Image(systemName: "hand.tap")
+                .font(.system(size: 24, weight: .light))
+                .foregroundStyle(Color.rose.opacity(0.4))
+
+            VStack(spacing: 3) {
+                Text("No taps yet")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.inkSoft)
+                Text("Tap to say hi")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.inkFaint)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -85,11 +97,7 @@ struct LastTapWidget: Widget {
         StaticConfiguration(kind: kind, provider: LastTapProvider()) { entry in
             LastTapSmallView(entry: entry)
                 .containerBackground(for: .widget) {
-                    LinearGradient(
-                        colors: [Color.cream, Color.rosePale],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                    Color.cream
                 }
         }
         .configurationDisplayName("Sweetie Taps")

@@ -1,4 +1,7 @@
 import SwiftUI
+import os
+
+private let logger = Logger(subsystem: "com.sweetie.together", category: "Pairing")
 
 struct PairingView: View {
     @Environment(SupabaseService.self) private var supabase
@@ -213,8 +216,10 @@ struct PairingView: View {
     private func createCouple() async {
         isLoading = true
         errorMessage = nil
+        logger.notice("createCouple tapped, userId: \(supabase.userId ?? "nil")")
         do {
             let code = try await supabase.createCouple()
+            logger.notice("createCouple success, code: \(code)")
             withAnimation(.gentle) {
                 pairingState = .waitingForPartner(code: code)
             }
@@ -222,6 +227,7 @@ struct PairingView: View {
                 supabase.subscribeToCouple(coupleId: coupleId)
             }
         } catch {
+            logger.error("createCouple error: \(error)")
             errorMessage = error.localizedDescription
         }
         isLoading = false

@@ -78,18 +78,16 @@ struct HomeView: View {
             await loadData()
             subscribeToRealtime()
         }
-        .fullScreenCover(isPresented: $showCamera, onDismiss: {
-            if capturedImage != nil {
-                // Delay to let fullScreenCover dismiss animation finish
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                    showCaptionSheet = true
-                }
-            }
-        }) {
-            ImagePicker { image in
+        .fullScreenCover(isPresented: $showCamera) {
+            ImagePicker(isPresented: $showCamera) { image in
                 capturedImage = image
             }
             .ignoresSafeArea()
+        }
+        .onChange(of: showCamera) { _, isShowing in
+            if !isShowing && capturedImage != nil {
+                showCaptionSheet = true
+            }
         }
         .sheet(isPresented: $showCaptionSheet, onDismiss: {
             if shouldUploadPhoto, let image = capturedImage {

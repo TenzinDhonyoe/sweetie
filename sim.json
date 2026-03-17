@@ -1,0 +1,7 @@
+{
+  "scheme": "Sweetie",
+  "bundleId": "com.sweetie.together",
+  "simulator": "iPhone 17 Pro",
+  "configuration": "Debug",
+  "deeplinkBase": "sweetie://"
+}
