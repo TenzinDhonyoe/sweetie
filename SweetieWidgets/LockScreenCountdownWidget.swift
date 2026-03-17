@@ -21,16 +21,16 @@ struct LockScreenCountdownProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LockScreenCountdownEntry>) -> Void) {
         let reunionDate = SharedDataManager.shared.loadReunionDate()
-        var entries: [LockScreenCountdownEntry] = []
-        let now = Date()
+        let entry = LockScreenCountdownEntry(date: .now, reunionDate: reunionDate)
 
-        for minuteOffset in 0..<60 {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now)!
-            entries.append(LockScreenCountdownEntry(date: entryDate, reunionDate: reunionDate))
-        }
+        // Lock screen countdown only shows days — refresh at midnight or in 1 hour
+        let nextMidnight = Calendar.current.startOfDay(
+            for: Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now
+        )
+        let nextHour = Calendar.current.date(byAdding: .hour, value: 1, to: .now) ?? .now
+        let refreshDate = min(nextMidnight, nextHour)
 
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+        completion(Timeline(entries: [entry], policy: .after(refreshDate)))
     }
 }
 
@@ -41,8 +41,12 @@ struct LockScreenInlineView: View {
 
     var body: some View {
         if let reunionDate = entry.reunionDate {
-            let days = max(0, Calendar.current.dateComponents([.day], from: entry.date, to: reunionDate).day ?? 0)
-            Text("\(Image(systemName: "heart.fill")) \(days) days until together")
+            let countdown = CountdownComponents.from(now: entry.date, to: reunionDate)
+            if countdown.isPast {
+                Text("\(Image(systemName: "heart.fill")) Together right now")
+            } else {
+                Text("\(Image(systemName: "heart.fill")) \(countdown.days)d \(CountdownTaglines.tagline(for: entry.date))")
+            }
         } else {
             Text("\(Image(systemName: "heart.fill")) Sweetie")
         }
@@ -56,23 +60,25 @@ struct LockScreenCircularView: View {
 
     var body: some View {
         if let reunionDate = entry.reunionDate {
-            let totalDays = max(0, Calendar.current.dateComponents([.day], from: entry.date, to: reunionDate).day ?? 0)
+            let countdown = CountdownComponents.from(now: entry.date, to: reunionDate)
 
             ZStack {
                 AccessoryWidgetBackground()
 
-                VStack(spacing: 0) {
+                if countdown.isPast {
                     Image(systemName: "heart.fill")
-                        .font(.system(size: 8))
-                        .padding(.bottom, 1)
+                        .font(.system(size: 24))
+                } else {
+                    VStack(spacing: 1) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 10))
 
-                    Text("\(totalDays)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        Text("\(countdown.days)")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
 
-                    Text("days")
-                        .font(.system(size: 7, weight: .medium))
-                        .textCase(.uppercase)
-                        .kerning(0.5)
+                        Text("days")
+                            .font(.system(size: 8))
+                    }
                 }
             }
         } else {
@@ -99,38 +105,51 @@ struct LockScreenRectangularView: View {
 
     var body: some View {
         if let reunionDate = entry.reunionDate {
-            let components = Calendar.current.dateComponents(
-                [.day, .hour, .minute],
-                from: entry.date,
-                to: reunionDate
-            )
-            let days = max(0, components.day ?? 0)
-            let hours = max(0, components.hour ?? 0)
-            let minutes = max(0, components.minute ?? 0)
+            let countdown = CountdownComponents.from(now: entry.date, to: reunionDate)
 
-            HStack(spacing: 10) {
-                // Days number
-                VStack(spacing: 1) {
-                    Text("\(days)")
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                    Text("days")
-                        .font(.system(size: 8, weight: .medium))
-                        .textCase(.uppercase)
-                        .kerning(0.5)
+            if countdown.isPast {
+                HStack(spacing: 8) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 18))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Together right now")
+                            .font(.system(size: 12, weight: .medium))
+                        HStack(spacing: 2) {
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 8))
+                            Text("Sweetie")
+                                .font(.system(size: 9))
+                        }
+                        .opacity(0.5)
+                    }
                 }
+            } else {
+                HStack(spacing: 8) {
+                    VStack(spacing: 0) {
+                        Text("\(countdown.days)")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
 
-                // Separator dot
-                Circle()
-                    .frame(width: 3, height: 3)
-                    .opacity(0.4)
+                        Text("days")
+                            .font(.system(size: 9))
+                    }
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("until together")
-                        .font(.system(size: 13, weight: .medium))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("until together")
+                            .font(.system(size: 12, weight: .medium))
 
-                    Text("\(hours)h \(minutes)m")
-                        .font(.system(size: 11, weight: .regular, design: .rounded))
-                        .opacity(0.6)
+                        Text("\(countdown.hours)h \(countdown.minutes)m remaining")
+                            .font(.system(size: 10))
+                            .opacity(0.7)
+
+                        HStack(spacing: 2) {
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 8))
+                            Text("Sweetie")
+                                .font(.system(size: 9))
+                        }
+                        .opacity(0.5)
+                    }
                 }
             }
         } else {
@@ -179,6 +198,7 @@ struct LockScreenCountdownWidget: Widget {
         StaticConfiguration(kind: kind, provider: LockScreenCountdownProvider()) { entry in
             LockScreenCountdownEntryView(entry: entry)
                 .containerBackground(.clear, for: .widget)
+                .widgetURL(URL(string: "sweetie://home"))
         }
         .configurationDisplayName("Together Countdown")
         .description("Days until you're together")

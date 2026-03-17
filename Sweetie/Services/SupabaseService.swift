@@ -64,22 +64,38 @@ final class SupabaseService {
         for await (event, session) in client.auth.authStateChanges {
             switch event {
             case .initialSession:
-                if session != nil {
+                if let session {
+                    syncAuthToWidget(session.accessToken, userId: session.user.id.uuidString.lowercased())
                     await refreshProfile()
                 } else {
                     authState = .unauthenticated
                 }
             case .signedIn:
+                if let session {
+                    syncAuthToWidget(session.accessToken, userId: session.user.id.uuidString.lowercased())
+                }
                 await refreshProfile()
+            case .tokenRefreshed:
+                if let session {
+                    syncAuthToWidget(session.accessToken, userId: session.user.id.uuidString.lowercased())
+                }
             case .signedOut:
                 profile = nil
                 couple = nil
                 unsubscribeFromCouple()
+                SharedDataManager.shared.clearAll()
                 authState = .unauthenticated
             default:
                 break
             }
         }
+    }
+
+    private func syncAuthToWidget(_ token: String, userId: String) {
+        let manager = SharedDataManager.shared
+        manager.saveAuthToken(token)
+        manager.saveUserId(userId)
+        manager.saveSupabaseCredentials(url: Self.supabaseURL, anonKey: Self.supabaseAnonKey)
     }
 
     func signInAnonymously() async {
@@ -443,45 +459,30 @@ final class SupabaseService {
 
     // MARK: - Love Notes
 
-    func fetchNotes(category: NoteCategory? = nil, limit: Int = 30) async -> [LoveNote] {
+    func fetchNotes(limit: Int = 30) async -> [LoveNote] {
         guard let coupleId = couple?.id else { return [] }
-        var query = client.from("love_notes")
+        return (try? await client.from("love_notes")
             .select()
             .eq("couple_id", value: coupleId)
-
-        if let category {
-            query = query.eq("category", value: category.rawValue)
-        }
-
-        return (try? await query
             .order("created_at", ascending: false)
             .limit(limit)
             .execute()
             .value) ?? []
     }
 
-    func sendNote(content: String, category: NoteCategory, openWhenLabel: String? = nil, deliverAt: Date? = nil) async throws {
+    func sendNote(content: String) async throws {
         guard let coupleId = couple?.id,
               let userId = await resolveUserId() else { return }
 
-        var row: [String: String] = [
+        // DB requires category column (NOT NULL with CHECK constraint)
+        let row: [String: String] = [
             "couple_id": coupleId,
             "sender_id": userId,
             "content": content,
-            "category": category.rawValue,
-            "delivered": category == .instant ? "true" : "false",
+            "category": "instant",
+            "delivered": "true",
             "read": "false"
         ]
-
-        if let openWhenLabel {
-            row["open_when_label"] = openWhenLabel
-        }
-
-        if let deliverAt {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            row["deliver_at"] = formatter.string(from: deliverAt)
-        }
 
         try await client.from("love_notes")
             .insert(row)
@@ -592,13 +593,6 @@ final class SupabaseService {
         try? client.storage
             .from("couple-photos")
             .getPublicURL(path: storagePath)
-    }
-
-    func reactToPhoto(photoId: String, reaction: String) async throws {
-        try await client.from("photos")
-            .update(["reaction": reaction])
-            .eq("id", value: photoId)
-            .execute()
     }
 
     func fetchPhotos(limit: Int = 20) async -> [Photo] {
@@ -800,9 +794,56 @@ final class SupabaseService {
     // MARK: - Widget Data Sync
 
     func syncWidgetData() {
+        let manager = SharedDataManager.shared
+
+        // Reunion date
         if let dateString = couple?.reunionDate {
-            SharedDataManager.shared.saveReunionDate(DateFormatting.parse(dateString))
+            manager.saveReunionDate(DateFormatting.parse(dateString))
         }
-        SharedDataManager.shared.reloadWidgets()
+
+        // Couple ID (for interactive widget tap)
+        if let coupleId = couple?.id {
+            manager.saveCoupleId(coupleId)
+        }
+
+        manager.reloadWidgets()
+    }
+
+    /// Extended sync that includes data requiring async fetches (partner profile, questions).
+    /// Called after full data load, not just on auth state change.
+    func syncWidgetDataFull() async {
+        let manager = SharedDataManager.shared
+
+        // Sync basic data
+        syncWidgetData()
+
+        // Partner timezone
+        if let partner = await fetchPartnerProfile() {
+            if let tz = partner.timezone {
+                manager.savePartnerTimezone(tz)
+            }
+        }
+
+        // Today's question
+        let questions = await fetchQuestions()
+        if let couple = couple,
+           let createdDate = DateFormatting.parse(couple.createdAt) {
+            let daysSinceCreation = Calendar.current.dateComponents([.day], from: createdDate, to: Date()).day ?? 0
+            let todayDay = min(daysSinceCreation + 1, 10)
+            if let todayQ = questions.first(where: { $0.dayNumber == todayDay }) {
+                let isPartner1 = couple.partner1 == userId
+                let myAnswer = isPartner1 ? todayQ.partner1Answer : todayQ.partner2Answer
+                let partnerAnswer = isPartner1 ? todayQ.partner2Answer : todayQ.partner1Answer
+
+                manager.saveTodayQuestion(SharedQuestionData(
+                    questionText: todayQ.questionText,
+                    myAnswer: myAnswer,
+                    partnerAnswer: partnerAnswer,
+                    isUnlocked: todayQ.unlockedAt != nil
+                ))
+            }
+        }
+
+        manager.reloadWidgets()
     }
 }

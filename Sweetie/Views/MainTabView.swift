@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(SupabaseService.self) private var supabase
-    @State private var selectedTab = 0
+    @Binding var selectedTab: Int
     @State private var receivedTap = false
     @State private var incomingTapBanner: String?
 

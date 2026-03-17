@@ -5,28 +5,20 @@ struct SweetieGlass: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26, *) {
-            content
-                .background(
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(Color.white.opacity(0.55))
-                        .shadow(color: Color.ink.opacity(0.08), radius: 12, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.30), lineWidth: 0.5)
-                        .allowsHitTesting(false)
-                )
+            content.background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .glassEffect()
+            )
         } else {
             content
                 .background(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(Color.white.opacity(0.55))
-                        .shadow(color: Color.ink.opacity(0.08), radius: 12, y: 4)
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: Color.ink.opacity(0.06), radius: 8, y: 2)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.30), lineWidth: 0.5)
-                        .allowsHitTesting(false)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 0.5)
                 )
         }
     }

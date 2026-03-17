@@ -29,6 +29,17 @@
     <string>Sweetie needs camera access to capture moments for your partner.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Sweetie needs photo library access to share moments with your partner.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>sweetie</string>
+            </array>
+            <key>CFBundleURLName</key>
+            <string>com.sweetie.together</string>
+        </dict>
+    </array>
     <key>UILaunchScreen</key>
     <dict/>
 </dict>

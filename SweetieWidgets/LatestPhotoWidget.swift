@@ -216,9 +216,10 @@ struct LatestPhotoWidget: Widget {
                 .containerBackground(for: .widget) {
                     Color.cream
                 }
+                .widgetURL(URL(string: "sweetie://home"))
         }
-        .configurationDisplayName("Sweetie Photos")
-        .description("Your partner's latest photo")
+        .configurationDisplayName("Moments")
+        .description("Your partner's latest photo, always close")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

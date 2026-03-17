@@ -24,21 +24,14 @@ struct SettingsView: View {
     @State private var selectedPartnerTimezone: String = ""
     @State private var timezoneSearch: String = ""
 
-    @AppStorage("notif_taps") private var tapNotifications: Bool = true
-    @AppStorage("notif_photos") private var photoNotifications: Bool = true
-    @AppStorage("notif_notes") private var noteNotifications: Bool = true
-    @AppStorage("notif_questions") private var questionReminder: Bool = true
-    @AppStorage("notif_time_sensitive") private var timeSensitive: Bool = false
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.xxl) {
-                    sectionWithHeader("PROFILE") { profileSection }
-                    sectionWithHeader("COUPLE") { coupleSection }
-                    sectionWithHeader("TIMEZONE") { timezoneSection }
-                    sectionWithHeader("NOTIFICATIONS") { notificationsSection }
-                    sectionWithHeader("ABOUT") { aboutSection }
+                    sectionWithHeader("Profile") { profileSection }
+                    sectionWithHeader("Couple") { coupleSection }
+                    sectionWithHeader("Timezone") { timezoneSection }
+                    sectionWithHeader("About") { aboutSection }
                 }
                 .padding(.horizontal, Spacing.xl)
                 .padding(.bottom, 100)
@@ -205,7 +198,7 @@ struct SettingsView: View {
                     if let reunionSaveError {
                         Text(reunionSaveError)
                             .font(.system(size: 13))
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.roseDark)
                             .padding(.horizontal, Spacing.sm)
                     }
 
@@ -587,59 +580,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Notifications Section
-
-    private var notificationsSection: some View {
-        GlassCard {
-            VStack(spacing: 0) {
-                toggleRow(label: "Tap Notifications", isOn: $tapNotifications)
-
-                Divider()
-                    .padding(.leading, Spacing.lg)
-
-                toggleRow(label: "Photo Notifications", isOn: $photoNotifications)
-
-                Divider()
-                    .padding(.leading, Spacing.lg)
-
-                toggleRow(label: "Love Note Notifications", isOn: $noteNotifications)
-
-                Divider()
-                    .padding(.leading, Spacing.lg)
-
-                toggleRow(label: "Daily Question Reminder", isOn: $questionReminder)
-
-                Divider()
-                    .padding(.leading, Spacing.lg)
-
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Toggle(isOn: $timeSensitive) {
-                        Text("Time Sensitive")
-                            .font(.system(size: 17))
-                            .foregroundStyle(Color.ink)
-                    }
-                    .tint(.rose)
-                    .frame(minHeight: 44)
-
-                    Text("Allows notifications during Focus mode")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.inkSoft)
-                }
-            }
-            .padding(.vertical, -Spacing.sm)
-        }
-    }
-
-    private func toggleRow(label: String, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            Text(label)
-                .font(.system(size: 17))
-                .foregroundStyle(Color.ink)
-        }
-        .tint(.rose)
-        .frame(minHeight: 44)
-    }
-
     // MARK: - About Section
 
     private var aboutSection: some View {
@@ -661,7 +601,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Sign Out")
                             .font(.system(size: 17))
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.roseDark)
 
                         Spacer()
                     }
