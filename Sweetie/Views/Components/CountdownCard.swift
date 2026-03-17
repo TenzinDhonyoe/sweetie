@@ -18,7 +18,7 @@ struct CountdownCard: View {
 
                     VStack(spacing: 2) {
                         Text("\(max(0, components.day ?? 0))")
-                            .font(.countdownHero)
+                            .font(.heroDisplay)
                             .foregroundStyle(Color.gold)
                             .contentTransition(.numericText())
 

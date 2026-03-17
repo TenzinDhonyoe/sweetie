@@ -156,8 +156,7 @@ struct PairingView: View {
 
             // Animated waiting indicator
             HStack(spacing: Spacing.sm) {
-                ProgressView()
-                    .tint(Color.rose)
+                MascotView(pose: .wave, size: 32, animation: .wiggle)
 
                 Text("Waiting for partner" + String(repeating: ".", count: dotCount))
                     .font(.system(size: 15, weight: .medium))

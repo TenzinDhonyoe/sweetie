@@ -41,7 +41,7 @@ struct PhotoCaptionSheet: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Send with ❤️")
+                        Text("Send with love")
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())

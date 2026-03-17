@@ -443,45 +443,30 @@ final class SupabaseService {
 
     // MARK: - Love Notes
 
-    func fetchNotes(category: NoteCategory? = nil, limit: Int = 30) async -> [LoveNote] {
+    func fetchNotes(limit: Int = 30) async -> [LoveNote] {
         guard let coupleId = couple?.id else { return [] }
-        var query = client.from("love_notes")
+        return (try? await client.from("love_notes")
             .select()
             .eq("couple_id", value: coupleId)
-
-        if let category {
-            query = query.eq("category", value: category.rawValue)
-        }
-
-        return (try? await query
             .order("created_at", ascending: false)
             .limit(limit)
             .execute()
             .value) ?? []
     }
 
-    func sendNote(content: String, category: NoteCategory, openWhenLabel: String? = nil, deliverAt: Date? = nil) async throws {
+    func sendNote(content: String) async throws {
         guard let coupleId = couple?.id,
               let userId = await resolveUserId() else { return }
 
-        var row: [String: String] = [
+        // DB requires category column (NOT NULL with CHECK constraint)
+        let row: [String: String] = [
             "couple_id": coupleId,
             "sender_id": userId,
             "content": content,
-            "category": category.rawValue,
-            "delivered": category == .instant ? "true" : "false",
+            "category": "instant",
+            "delivered": "true",
             "read": "false"
         ]
-
-        if let openWhenLabel {
-            row["open_when_label"] = openWhenLabel
-        }
-
-        if let deliverAt {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            row["deliver_at"] = formatter.string(from: deliverAt)
-        }
 
         try await client.from("love_notes")
             .insert(row)
@@ -592,13 +577,6 @@ final class SupabaseService {
         try? client.storage
             .from("couple-photos")
             .getPublicURL(path: storagePath)
-    }
-
-    func reactToPhoto(photoId: String, reaction: String) async throws {
-        try await client.from("photos")
-            .update(["reaction": reaction])
-            .eq("id", value: photoId)
-            .execute()
     }
 
     func fetchPhotos(limit: Int = 20) async -> [Photo] {

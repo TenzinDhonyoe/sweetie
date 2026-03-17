@@ -180,7 +180,7 @@ struct HeartView: View {
     private var todayCard: some View {
         GlassCard {
             VStack(spacing: Spacing.sm) {
-                Text("TODAY")
+                Text("Today")
                     .sectionHeader()
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -253,7 +253,7 @@ struct HeartView: View {
         floatingOffset = 0
         floatingOpacity = 1
 
-        withAnimation(.easeOut(duration: 0.8)) {
+        withAnimation(.spring(duration: 0.8, bounce: 0.1)) {
             floatingOffset = -80
             floatingOpacity = 0
         }

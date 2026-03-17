@@ -108,7 +108,7 @@ struct HeartButton: View {
         floatingOffset = 0
         floatingOpacity = 1
 
-        withAnimation(.easeOut(duration: 0.8)) {
+        withAnimation(.spring(duration: 0.8, bounce: 0.1)) {
             floatingOffset = -60
             floatingOpacity = 0
         }
